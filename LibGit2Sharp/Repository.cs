@@ -1006,17 +1006,12 @@ namespace LibGit2Sharp
             using (var ourHandle = Proxy.git_object_peel(Handle, ourTree.Id, GitObjectType.Tree, true))
             using (var theirHandle = Proxy.git_object_peel(Handle, theirTree.Id, GitObjectType.Tree, true))
             {
-                if (ancestorTree != null)
-                {
-                    using (var ancestorHandle = Proxy.git_object_peel(Handle, ancestorTree.Id, GitObjectType.Tree, false))
-                    using (var indexHandle = Proxy.git_merge_trees(Handle, ancestorHandle, ourHandle, theirHandle))
-                    {
-                        return Proxy.git_index_has_conflicts(indexHandle);
-                    }
-                }
+                var ancestorHandle = ancestorTree != null
+                    ? Proxy.git_object_peel(Handle, ancestorTree.Id, GitObjectType.Tree, false)
+                    : new NullGitObjectSafeHandle();
 
-                var safeHandle = new NullGitObjectSafeHandle();
-                using (var indexHandle = Proxy.git_merge_trees(Handle, safeHandle, ourHandle, theirHandle))
+                using (ancestorHandle)
+                using (var indexHandle = Proxy.git_merge_trees(Handle, ancestorHandle, ourHandle, theirHandle))
                 {
                     return Proxy.git_index_has_conflicts(indexHandle);
                 }
